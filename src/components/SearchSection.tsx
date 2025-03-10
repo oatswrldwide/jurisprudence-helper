@@ -53,18 +53,10 @@ export const SearchSection = () => {
         className="space-y-4"
       >
         <TabsList className="grid grid-cols-4 mb-4">
-          <TabsTrigger value="all" className="data-[state=active]:bg-legal-gold data-[state=active]:text-white">
-            All Sources
-          </TabsTrigger>
-          <TabsTrigger value="cases" className="data-[state=active]:bg-legal-gold data-[state=active]:text-white">
-            Case Law
-          </TabsTrigger>
-          <TabsTrigger value="statutes" className="data-[state=active]:bg-legal-gold data-[state=active]:text-white">
-            Statutes
-          </TabsTrigger>
-          <TabsTrigger value="commentaries" className="data-[state=active]:bg-legal-gold data-[state=active]:text-white">
-            Commentaries
-          </TabsTrigger>
+          <TabsTrigger value="all">All Sources</TabsTrigger>
+          <TabsTrigger value="cases">Case Law</TabsTrigger>
+          <TabsTrigger value="statutes">Statutes</TabsTrigger>
+          <TabsTrigger value="commentaries">Legal Commentaries</TabsTrigger>
         </TabsList>
         
         <TabsContent value="all" className="mt-0 space-y-4">
@@ -100,15 +92,15 @@ export const SearchSection = () => {
           {!hasSearched && <SearchTips />}
         </TabsContent>
         
-        <TabsContent value="cases" className="mt-0">
+        <TabsContent value="cases">
           <TabContent placeholder="Search case law..." />
         </TabsContent>
         
-        <TabsContent value="statutes" className="mt-0">
+        <TabsContent value="statutes">
           <TabContent placeholder="Search statutes..." />
         </TabsContent>
         
-        <TabsContent value="commentaries" className="mt-0">
+        <TabsContent value="commentaries">
           <TabContent placeholder="Search legal commentaries..." />
         </TabsContent>
       </Tabs>

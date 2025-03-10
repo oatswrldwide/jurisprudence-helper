@@ -9,15 +9,21 @@ interface TabContentProps {
 }
 
 export const TabContent: React.FC<TabContentProps> = ({ placeholder }) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+
   return (
-    <div className="flex gap-3">
-      <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-        <Input placeholder={placeholder} className="pl-10" />
+    <form onSubmit={handleSubmit}>
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input placeholder={placeholder} className="pl-10" />
+        </div>
+        <Button type="submit" className="bg-legal-navy hover:bg-legal-navy/90">
+          Search
+        </Button>
       </div>
-      <Button type="submit" className="bg-legal-navy hover:bg-legal-navy/90">
-        Search
-      </Button>
-    </div>
+    </form>
   );
 };
