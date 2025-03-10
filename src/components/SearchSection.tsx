@@ -3,57 +3,161 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, BookOpen, FileText, Scale } from 'lucide-react';
+import { Search, BookOpen, FileText, Scale, Database, Filter } from 'lucide-react';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 export const SearchSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    
+    // Simulate search request
+    setTimeout(() => {
+      setIsSearching(false);
+    }, 1500);
+  };
   
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
-      <h2 className="text-xl font-semibold text-legal-navy mb-6">Legal Search</h2>
+    <div className="bg-white rounded-lg shadow-md border p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <Database className="h-5 w-5 text-legal-gold" />
+        <h2 className="text-xl font-semibold text-legal-navy">SAFLII Legal Search</h2>
+      </div>
       
-      <Tabs defaultValue="all">
-        <TabsList className="grid grid-cols-4 mb-6">
-          <TabsTrigger value="all">All Sources</TabsTrigger>
-          <TabsTrigger value="cases">Case Law</TabsTrigger>
-          <TabsTrigger value="statutes">Statutes</TabsTrigger>
-          <TabsTrigger value="commentaries">Commentaries</TabsTrigger>
+      <Tabs defaultValue="all" className="space-y-4">
+        <TabsList className="grid grid-cols-4 mb-4">
+          <TabsTrigger value="all" className="data-[state=active]:bg-legal-gold data-[state=active]:text-white">
+            All Sources
+          </TabsTrigger>
+          <TabsTrigger value="cases" className="data-[state=active]:bg-legal-gold data-[state=active]:text-white">
+            Case Law
+          </TabsTrigger>
+          <TabsTrigger value="statutes" className="data-[state=active]:bg-legal-gold data-[state=active]:text-white">
+            Statutes
+          </TabsTrigger>
+          <TabsTrigger value="commentaries" className="data-[state=active]:bg-legal-gold data-[state=active]:text-white">
+            Commentaries
+          </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="all" className="mt-0">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search legal databases..." 
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button type="submit" className="bg-legal-navy hover:bg-legal-navy/90">
-              Search
-            </Button>
-          </div>
-          
-          <div className="mt-8">
-            <h3 className="text-sm font-medium text-muted-foreground mb-4">SEARCH TIPS</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-start">
-                <BookOpen className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
+        <TabsContent value="all" className="mt-0 space-y-4">
+          <form onSubmit={handleSearch}>
+            <div className="flex flex-col space-y-4">
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Search legal databases..." 
+                    className="pl-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="bg-legal-navy hover:bg-legal-navy/90"
+                  disabled={isSearching}
+                >
+                  {isSearching ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <span>Searching...</span>
+                    </div>
+                  ) : (
+                    <span>Search</span>
+                  )}
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <h4 className="font-medium">Use Boolean Operators</h4>
-                  <p className="text-sm text-muted-foreground">Combine terms with AND, OR, NOT</p>
+                  <Select>
+                    <SelectTrigger>
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        <SelectValue placeholder="Court" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Courts</SelectItem>
+                      <SelectItem value="cc">Constitutional Court</SelectItem>
+                      <SelectItem value="sca">Supreme Court of Appeal</SelectItem>
+                      <SelectItem value="high">High Courts</SelectItem>
+                      <SelectItem value="labour">Labour Court</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Select>
+                    <SelectTrigger>
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        <SelectValue placeholder="Year" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Years</SelectItem>
+                      <SelectItem value="2023">2023</SelectItem>
+                      <SelectItem value="2022">2022</SelectItem>
+                      <SelectItem value="2021">2021</SelectItem>
+                      <SelectItem value="2020">2020</SelectItem>
+                      <SelectItem value="older">2019 & Older</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Select>
+                    <SelectTrigger>
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        <SelectValue placeholder="Topic" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Topics</SelectItem>
+                      <SelectItem value="constitutional">Constitutional Law</SelectItem>
+                      <SelectItem value="criminal">Criminal Law</SelectItem>
+                      <SelectItem value="civil">Civil Procedure</SelectItem>
+                      <SelectItem value="commercial">Commercial Law</SelectItem>
+                      <SelectItem value="administrative">Administrative Law</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-              <div className="flex items-start">
+            </div>
+          </form>
+          
+          <div className="border-t pt-4 mt-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-4">SEARCH TIPS</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-start p-3 bg-legal-lightBlue rounded-md">
+                <BookOpen className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
+                <div>
+                  <h4 className="font-medium">Boolean Operators</h4>
+                  <p className="text-sm text-muted-foreground">Use AND, OR, NOT to refine searches</p>
+                </div>
+              </div>
+              <div className="flex items-start p-3 bg-legal-lightBlue rounded-md">
                 <FileText className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
                 <div>
                   <h4 className="font-medium">Exact Phrases</h4>
                   <p className="text-sm text-muted-foreground">Use quotes for exact matches</p>
                 </div>
               </div>
-              <div className="flex items-start">
+              <div className="flex items-start p-3 bg-legal-lightBlue rounded-md">
                 <Scale className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
                 <div>
                   <h4 className="font-medium">Case Citations</h4>

@@ -4,11 +4,16 @@ import { SearchSection } from './SearchSection';
 import { DocumentAnalyzer } from './DocumentAnalyzer';
 import { RecentCases } from './RecentCases';
 import { LegalCalendar } from './LegalCalendar';
+import { AiAssistant } from './AiAssistant';
 
 export const Dashboard = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold text-legal-navy mb-6">Welcome to LexAI</h1>
+      
+      <div className="mb-8">
+        <AiAssistant />
+      </div>
       
       <div className="mb-8">
         <SearchSection />
