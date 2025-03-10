@@ -1,18 +1,13 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Database } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, BookOpen, FileText, Scale, Database, Filter } from 'lucide-react';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 import { SearchResults } from '@/components/SearchResults';
 import { useLegalCaseSearch, SearchParams } from '@/services/safliiService';
+import { SearchInput } from '@/components/Search/SearchInput';
+import { SearchFilters } from '@/components/Search/SearchFilters';
+import { SearchTips } from '@/components/Search/SearchTips';
+import { TabContent } from '@/components/Search/TabContent';
 
 export const SearchSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,93 +68,23 @@ export const SearchSection = () => {
         </TabsList>
         
         <TabsContent value="all" className="mt-0 space-y-4">
-          <form onSubmit={handleSearch}>
-            <div className="flex flex-col space-y-4">
-              <div className="flex gap-3">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Search legal databases..." 
-                    className="pl-10"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="bg-legal-navy hover:bg-legal-navy/90"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      <span>Searching...</span>
-                    </div>
-                  ) : (
-                    <span>Search</span>
-                  )}
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div>
-                  <Select value={court} onValueChange={setCourt}>
-                    <SelectTrigger>
-                      <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4" />
-                        <SelectValue placeholder="Court" />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Courts</SelectItem>
-                      <SelectItem value="cc">Constitutional Court</SelectItem>
-                      <SelectItem value="sca">Supreme Court of Appeal</SelectItem>
-                      <SelectItem value="high">High Courts</SelectItem>
-                      <SelectItem value="labour">Labour Court</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Select value={year} onValueChange={setYear}>
-                    <SelectTrigger>
-                      <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4" />
-                        <SelectValue placeholder="Year" />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Years</SelectItem>
-                      <SelectItem value="2023">2023</SelectItem>
-                      <SelectItem value="2022">2022</SelectItem>
-                      <SelectItem value="2021">2021</SelectItem>
-                      <SelectItem value="2020">2020</SelectItem>
-                      <SelectItem value="older">2019 & Older</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Select value={topic} onValueChange={setTopic}>
-                    <SelectTrigger>
-                      <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4" />
-                        <SelectValue placeholder="Topic" />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Topics</SelectItem>
-                      <SelectItem value="constitutional">Constitutional Law</SelectItem>
-                      <SelectItem value="criminal">Criminal Law</SelectItem>
-                      <SelectItem value="civil">Civil Procedure</SelectItem>
-                      <SelectItem value="commercial">Commercial Law</SelectItem>
-                      <SelectItem value="administrative">Administrative Law</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          </form>
+          <div className="flex flex-col space-y-4">
+            <SearchInput 
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              handleSearch={handleSearch}
+              loading={loading}
+            />
+            
+            <SearchFilters
+              court={court}
+              setCourt={setCourt}
+              year={year}
+              setYear={setYear}
+              topic={topic}
+              setTopic={setTopic}
+            />
+          </div>
           
           {hasSearched && (
             <div className="mt-6 border-t pt-4">
@@ -172,70 +97,19 @@ export const SearchSection = () => {
             </div>
           )}
           
-          {!hasSearched && (
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-4">SEARCH TIPS</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-start p-3 bg-legal-lightBlue rounded-md">
-                  <BookOpen className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium">Boolean Operators</h4>
-                    <p className="text-sm text-muted-foreground">Use AND, OR, NOT to refine searches</p>
-                  </div>
-                </div>
-                <div className="flex items-start p-3 bg-legal-lightBlue rounded-md">
-                  <FileText className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium">Exact Phrases</h4>
-                    <p className="text-sm text-muted-foreground">Use quotes for exact matches</p>
-                  </div>
-                </div>
-                <div className="flex items-start p-3 bg-legal-lightBlue rounded-md">
-                  <Scale className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium">Case Citations</h4>
-                    <p className="text-sm text-muted-foreground">Format: [Year] Volume Reporter Page</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {!hasSearched && <SearchTips />}
         </TabsContent>
         
         <TabsContent value="cases" className="mt-0">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input placeholder="Search case law..." className="pl-10" />
-            </div>
-            <Button type="submit" className="bg-legal-navy hover:bg-legal-navy/90">
-              Search
-            </Button>
-          </div>
+          <TabContent placeholder="Search case law..." />
         </TabsContent>
         
         <TabsContent value="statutes" className="mt-0">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input placeholder="Search statutes..." className="pl-10" />
-            </div>
-            <Button type="submit" className="bg-legal-navy hover:bg-legal-navy/90">
-              Search
-            </Button>
-          </div>
+          <TabContent placeholder="Search statutes..." />
         </TabsContent>
         
         <TabsContent value="commentaries" className="mt-0">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input placeholder="Search legal commentaries..." className="pl-10" />
-            </div>
-            <Button type="submit" className="bg-legal-navy hover:bg-legal-navy/90">
-              Search
-            </Button>
-          </div>
+          <TabContent placeholder="Search legal commentaries..." />
         </TabsContent>
       </Tabs>
     </div>
