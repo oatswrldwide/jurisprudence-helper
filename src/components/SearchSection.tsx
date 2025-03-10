@@ -11,21 +11,34 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { SearchResults } from '@/components/SearchResults';
+import { useLegalCaseSearch, SearchParams } from '@/services/safliiService';
 
 export const SearchSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+  const [court, setCourt] = useState<string>('all');
+  const [year, setYear] = useState<string>('all');
+  const [topic, setTopic] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState('all');
+  const [hasSearched, setHasSearched] = useState(false);
+  
+  const searchParams: SearchParams = {
+    query: searchQuery,
+    court,
+    year,
+    topic,
+    page: 1,
+    limit: 10
+  };
+  
+  const { cases, loading, error, totalResults } = useLegalCaseSearch(
+    hasSearched ? searchParams : { ...searchParams, query: '' }
+  );
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    
-    setIsSearching(true);
-    
-    // Simulate search request
-    setTimeout(() => {
-      setIsSearching(false);
-    }, 1500);
+    setHasSearched(true);
   };
   
   return (
@@ -35,7 +48,15 @@ export const SearchSection = () => {
         <h2 className="text-xl font-semibold text-legal-navy">SAFLII Legal Search</h2>
       </div>
       
-      <Tabs defaultValue="all" className="space-y-4">
+      <Tabs 
+        defaultValue="all" 
+        value={activeTab}
+        onValueChange={(value) => {
+          setActiveTab(value);
+          setHasSearched(false);
+        }}
+        className="space-y-4"
+      >
         <TabsList className="grid grid-cols-4 mb-4">
           <TabsTrigger value="all" className="data-[state=active]:bg-legal-gold data-[state=active]:text-white">
             All Sources
@@ -67,9 +88,9 @@ export const SearchSection = () => {
                 <Button 
                   type="submit" 
                   className="bg-legal-navy hover:bg-legal-navy/90"
-                  disabled={isSearching}
+                  disabled={loading}
                 >
-                  {isSearching ? (
+                  {loading ? (
                     <div className="flex items-center gap-2">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                       <span>Searching...</span>
@@ -82,7 +103,7 @@ export const SearchSection = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <Select>
+                  <Select value={court} onValueChange={setCourt}>
                     <SelectTrigger>
                       <div className="flex items-center gap-2">
                         <Filter className="h-4 w-4" />
@@ -100,7 +121,7 @@ export const SearchSection = () => {
                 </div>
                 
                 <div>
-                  <Select>
+                  <Select value={year} onValueChange={setYear}>
                     <SelectTrigger>
                       <div className="flex items-center gap-2">
                         <Filter className="h-4 w-4" />
@@ -119,7 +140,7 @@ export const SearchSection = () => {
                 </div>
                 
                 <div>
-                  <Select>
+                  <Select value={topic} onValueChange={setTopic}>
                     <SelectTrigger>
                       <div className="flex items-center gap-2">
                         <Filter className="h-4 w-4" />
@@ -140,32 +161,45 @@ export const SearchSection = () => {
             </div>
           </form>
           
-          <div className="border-t pt-4 mt-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-4">SEARCH TIPS</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-start p-3 bg-legal-lightBlue rounded-md">
-                <BookOpen className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
-                <div>
-                  <h4 className="font-medium">Boolean Operators</h4>
-                  <p className="text-sm text-muted-foreground">Use AND, OR, NOT to refine searches</p>
+          {hasSearched && (
+            <div className="mt-6 border-t pt-4">
+              <SearchResults 
+                cases={cases} 
+                loading={loading} 
+                error={error} 
+                totalResults={totalResults} 
+              />
+            </div>
+          )}
+          
+          {!hasSearched && (
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-4">SEARCH TIPS</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-start p-3 bg-legal-lightBlue rounded-md">
+                  <BookOpen className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium">Boolean Operators</h4>
+                    <p className="text-sm text-muted-foreground">Use AND, OR, NOT to refine searches</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start p-3 bg-legal-lightBlue rounded-md">
-                <FileText className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
-                <div>
-                  <h4 className="font-medium">Exact Phrases</h4>
-                  <p className="text-sm text-muted-foreground">Use quotes for exact matches</p>
+                <div className="flex items-start p-3 bg-legal-lightBlue rounded-md">
+                  <FileText className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium">Exact Phrases</h4>
+                    <p className="text-sm text-muted-foreground">Use quotes for exact matches</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start p-3 bg-legal-lightBlue rounded-md">
-                <Scale className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
-                <div>
-                  <h4 className="font-medium">Case Citations</h4>
-                  <p className="text-sm text-muted-foreground">Format: [Year] Volume Reporter Page</p>
+                <div className="flex items-start p-3 bg-legal-lightBlue rounded-md">
+                  <Scale className="h-5 w-5 text-legal-gold mr-3 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium">Case Citations</h4>
+                    <p className="text-sm text-muted-foreground">Format: [Year] Volume Reporter Page</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </TabsContent>
         
         <TabsContent value="cases" className="mt-0">
