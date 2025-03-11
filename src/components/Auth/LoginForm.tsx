@@ -68,7 +68,7 @@ export const LoginForm = () => {
         
         <Button
           type="submit"
-          className="w-full bg-legal-navy hover:bg-legal-navy/90"
+          className="w-full bg-legal-gold hover:bg-legal-gold/90 text-white"
           disabled={isLoading}
         >
           {isLoading ? (

@@ -1,14 +1,13 @@
 
 import React, { useState } from 'react';
 import { LoginForm } from '@/components/Auth/LoginForm';
-import { SignUpForm } from '@/components/Auth/SignUpForm';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { UserIcon } from 'lucide-react';
 
 const Auth = () => {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('login');
+  const { user, continueAsGuest } = useAuth();
   
   if (user) {
     return <Navigate to="/" />;
@@ -24,24 +23,35 @@ const Auth = () => {
       </div>
       
       <div className="w-full max-w-md">
-        <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-2 mb-6">
-            <TabsTrigger value="login" className="data-[state=active]:bg-legal-gold data-[state=active]:text-white">
-              Login
-            </TabsTrigger>
-            <TabsTrigger value="signup" className="data-[state=active]:bg-legal-gold data-[state=active]:text-white">
-              Sign Up
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="login">
+        <div className="space-y-4">
+          <div>
             <LoginForm />
-          </TabsContent>
+          </div>
           
-          <TabsContent value="signup">
-            <SignUpForm />
-          </TabsContent>
-        </Tabs>
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-legal-grey px-2 text-muted-foreground">
+                Or continue without an account
+              </span>
+            </div>
+          </div>
+          
+          <Button 
+            onClick={continueAsGuest}
+            className="w-full bg-legal-navy/10 hover:bg-legal-navy/20 text-legal-navy"
+            variant="outline"
+          >
+            <UserIcon className="mr-2 h-4 w-4" />
+            Continue as Guest
+          </Button>
+          
+          <p className="text-xs text-center text-muted-foreground mt-4">
+            By continuing, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </div>
       </div>
     </div>
   );

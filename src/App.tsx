@@ -11,7 +11,7 @@ import NotFound from "./pages/NotFound";
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, isGuest } = useAuth();
   
   if (loading) {
     return <div className="h-screen flex items-center justify-center">Loading...</div>;
