@@ -1,137 +1,112 @@
 
-import { useState, useEffect } from 'react';
+import { incrementRequestCount, hasReachedLimit } from './requestLimitService';
 
-export interface LegalCase {
+export interface CaseResult {
   id: string;
   title: string;
+  citation: string;
   court: string;
   date: string;
-  citation: string;
-  judge: string;
   summary: string;
-  url: string;
+  tags: string[];
+  safliiLink: string;
 }
 
-export interface SearchParams {
-  query: string;
-  court?: string;
-  year?: string;
-  topic?: string;
-  page?: number;
-  limit?: number;
-}
+// For now, we'll use mock data as a placeholder for the actual API
+const mockCases: CaseResult[] = [
+  {
+    id: '1',
+    title: 'Minister of Police v Mboweni',
+    citation: '[2023] ZACC 12',
+    court: 'Constitutional Court',
+    date: '15 May 2023',
+    summary: 'Deals with state liability for actions of police officers while on duty.',
+    tags: ['Constitutional Law', 'State Liability'],
+    safliiLink: 'http://www.saflii.org/za/cases/ZACC/2023/12.html'
+  },
+  {
+    id: '2',
+    title: 'ABC Investments v Commissioner of SARS',
+    citation: '[2023] ZASCA 47',
+    court: 'Supreme Court of Appeal',
+    date: '3 April 2023',
+    summary: 'Tax assessment dispute regarding capital gains calculations.',
+    tags: ['Tax Law', 'Capital Gains'],
+    safliiLink: 'http://www.saflii.org/za/cases/ZASCA/2023/47.html'
+  },
+  {
+    id: '3',
+    title: 'Smith v City of Cape Town',
+    citation: '[2023] ZAWCHC 32',
+    court: 'Western Cape High Court',
+    date: '22 March 2023',
+    summary: 'Property dispute over municipal zoning regulations.',
+    tags: ['Property Law', 'Municipal Law'],
+    safliiLink: 'http://www.saflii.org/za/cases/ZAWCHC/2023/32.html'
+  },
+  {
+    id: '4',
+    title: 'Naidoo v Transnet Ltd',
+    citation: '[2023] ZALAC 15',
+    court: 'Labour Appeal Court',
+    date: '10 June 2023',
+    summary: 'Unfair dismissal case involving misconduct allegations.',
+    tags: ['Labour Law', 'Unfair Dismissal'],
+    safliiLink: 'http://www.saflii.org/za/cases/ZALAC/2023/15.html'
+  },
+  {
+    id: '5',
+    title: 'Kruger v Standard Bank',
+    citation: '[2023] ZAGPPHC 74',
+    court: 'Gauteng High Court',
+    date: '2 July 2023',
+    summary: 'Banking dispute regarding credit facility terms.',
+    tags: ['Banking Law', 'Contract Law'],
+    safliiLink: 'http://www.saflii.org/za/cases/ZAGPPHC/2023/74.html'
+  }
+];
 
-export const useLegalCaseSearch = (params: SearchParams) => {
-  const [cases, setCases] = useState<LegalCase[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [totalResults, setTotalResults] = useState(0);
+// Function to search SAFLII cases
+export const searchSafliiCases = async (query: string): Promise<{ data: CaseResult[], limitReached: boolean }> => {
+  // Check if user has reached the limit
+  if (hasReachedLimit()) {
+    return { data: [], limitReached: true };
+  }
+  
+  // In a real implementation, this would make an API call to SAFLII
+  // For now, we'll just filter our mock data
+  const results = mockCases.filter(caseItem => 
+    caseItem.title.toLowerCase().includes(query.toLowerCase()) ||
+    caseItem.summary.toLowerCase().includes(query.toLowerCase()) ||
+    caseItem.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
+  );
 
-  useEffect(() => {
-    const fetchCases = async () => {
-      if (!params.query) {
-        setCases([]);
-        setTotalResults(0);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        // In a real implementation, this would make an API call to SAFLII or a backend service
-        // For now, we'll simulate the response with mock data
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Generate mock cases based on search query
-        const mockCases = generateMockCases(params);
-        setCases(mockCases);
-        setTotalResults(mockCases.length > 0 ? 127 : 0); // Mock total count
-      } catch (err) {
-        console.error('Error fetching legal cases:', err);
-        setError('Failed to fetch legal cases. Please try again.');
-        setCases([]);
-        setTotalResults(0);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCases();
-  }, [params]);
-
-  return { cases, loading, error, totalResults };
+  // Increment request count
+  incrementRequestCount();
+  
+  // Simulate API latency
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  return { data: results, limitReached: false };
 };
 
-// Mock data generator (to be replaced with actual API integration)
-const generateMockCases = (params: SearchParams): LegalCase[] => {
-  if (!params.query.trim()) return [];
-  
-  const courts = [
-    'Constitutional Court',
-    'Supreme Court of Appeal',
-    'High Court (Cape Town)',
-    'High Court (Johannesburg)',
-    'Labour Court'
-  ];
-  
-  const judges = [
-    'Mogoeng CJ',
-    'Madlanga J',
-    'Khampepe J',
-    'Jafta J',
-    'Froneman J'
-  ];
-  
-  // Filter by court if specified
-  let filteredCourts = courts;
-  if (params.court && params.court !== 'all') {
-    switch (params.court) {
-      case 'cc':
-        filteredCourts = ['Constitutional Court'];
-        break;
-      case 'sca':
-        filteredCourts = ['Supreme Court of Appeal'];
-        break;
-      case 'high':
-        filteredCourts = ['High Court (Cape Town)', 'High Court (Johannesburg)'];
-        break;
-      case 'labour':
-        filteredCourts = ['Labour Court'];
-        break;
-    }
+// Function to get a specific case by ID
+export const getCaseById = async (id: string): Promise<{ data: CaseResult | null, limitReached: boolean }> => {
+  // Check if user has reached the limit
+  if (hasReachedLimit()) {
+    return { data: null, limitReached: true };
   }
   
-  // Filter by year if specified
-  const currentYear = new Date().getFullYear();
-  let yearRange = [currentYear - 5, currentYear];
-  if (params.year && params.year !== 'all') {
-    if (params.year === 'older') {
-      yearRange = [currentYear - 20, currentYear - 5];
-    } else {
-      const year = parseInt(params.year);
-      yearRange = [year, year];
-    }
+  // In a real implementation, this would make an API call to SAFLII
+  const result = mockCases.find(caseItem => caseItem.id === id);
+  
+  // Increment request count if case is found
+  if (result) {
+    incrementRequestCount();
   }
   
-  // Generate mock cases
-  return Array.from({ length: 10 }, (_, i) => {
-    const courtIndex = i % filteredCourts.length;
-    const court = filteredCourts[courtIndex];
-    const year = Math.floor(Math.random() * (yearRange[1] - yearRange[0] + 1)) + yearRange[0];
-    const month = Math.floor(Math.random() * 12) + 1;
-    const day = Math.floor(Math.random() * 28) + 1;
-    const date = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-    
-    return {
-      id: `case-${i + 1}-${Date.now()}`,
-      title: `${params.query.toUpperCase()} v Minister of Justice (${i + 1}/2${year})`,
-      court,
-      date,
-      citation: `[${year}] ZACC ${i + 1}`,
-      judge: judges[i % judges.length],
-      summary: `This case involves a dispute regarding ${params.query}. The court found that the respondent had violated the plaintiff's constitutional rights.`,
-      url: `https://www.saflii.org/za/cases/ZACC/${year}/${i + 1}.html`
-    };
-  });
+  // Simulate API latency
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  return { data: result || null, limitReached: false };
 };
