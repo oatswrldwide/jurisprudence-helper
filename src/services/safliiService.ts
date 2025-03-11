@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from 'react';
 import { incrementRequestCount, hasReachedLimit } from './requestLimitService';
 
 export interface CaseResult {
@@ -10,6 +11,17 @@ export interface CaseResult {
   summary: string;
   tags: string[];
   safliiLink: string;
+  judge?: string; // Optional prop used in SearchResults
+  url?: string; // Optional for backward compatibility
+}
+
+export interface SearchParams {
+  query: string;
+  court?: string;
+  year?: string;
+  topic?: string;
+  page?: number;
+  limit?: number;
 }
 
 // For now, we'll use mock data as a placeholder for the actual API
@@ -22,7 +34,8 @@ const mockCases: CaseResult[] = [
     date: '15 May 2023',
     summary: 'Deals with state liability for actions of police officers while on duty.',
     tags: ['Constitutional Law', 'State Liability'],
-    safliiLink: 'http://www.saflii.org/za/cases/ZACC/2023/12.html'
+    safliiLink: 'http://www.saflii.org/za/cases/ZACC/2023/12.html',
+    judge: 'Mogoeng CJ'
   },
   {
     id: '2',
@@ -32,7 +45,8 @@ const mockCases: CaseResult[] = [
     date: '3 April 2023',
     summary: 'Tax assessment dispute regarding capital gains calculations.',
     tags: ['Tax Law', 'Capital Gains'],
-    safliiLink: 'http://www.saflii.org/za/cases/ZASCA/2023/47.html'
+    safliiLink: 'http://www.saflii.org/za/cases/ZASCA/2023/47.html',
+    judge: 'Ponnan JA'
   },
   {
     id: '3',
@@ -42,7 +56,8 @@ const mockCases: CaseResult[] = [
     date: '22 March 2023',
     summary: 'Property dispute over municipal zoning regulations.',
     tags: ['Property Law', 'Municipal Law'],
-    safliiLink: 'http://www.saflii.org/za/cases/ZAWCHC/2023/32.html'
+    safliiLink: 'http://www.saflii.org/za/cases/ZAWCHC/2023/32.html',
+    judge: 'Binns-Ward J'
   },
   {
     id: '4',
@@ -52,7 +67,8 @@ const mockCases: CaseResult[] = [
     date: '10 June 2023',
     summary: 'Unfair dismissal case involving misconduct allegations.',
     tags: ['Labour Law', 'Unfair Dismissal'],
-    safliiLink: 'http://www.saflii.org/za/cases/ZALAC/2023/15.html'
+    safliiLink: 'http://www.saflii.org/za/cases/ZALAC/2023/15.html',
+    judge: 'Davis JP'
   },
   {
     id: '5',
@@ -62,7 +78,8 @@ const mockCases: CaseResult[] = [
     date: '2 July 2023',
     summary: 'Banking dispute regarding credit facility terms.',
     tags: ['Banking Law', 'Contract Law'],
-    safliiLink: 'http://www.saflii.org/za/cases/ZAGPPHC/2023/74.html'
+    safliiLink: 'http://www.saflii.org/za/cases/ZAGPPHC/2023/74.html',
+    judge: 'Meyer J'
   }
 ];
 
@@ -109,4 +126,49 @@ export const getCaseById = async (id: string): Promise<{ data: CaseResult | null
   await new Promise(resolve => setTimeout(resolve, 800));
   
   return { data: result || null, limitReached: false };
+};
+
+// Custom hook for searching SAFLII cases
+export const useLegalCaseSearch = (params: SearchParams) => {
+  const [cases, setCases] = useState<CaseResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [totalResults, setTotalResults] = useState(0);
+
+  useEffect(() => {
+    const fetchCases = async () => {
+      // Skip if query is empty or just whitespace
+      if (!params.query || !params.query.trim()) {
+        setCases([]);
+        setTotalResults(0);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const { data, limitReached } = await searchSafliiCases(params.query);
+        
+        if (limitReached) {
+          setError('Daily request limit reached. Please upgrade to premium.');
+          setCases([]);
+          setTotalResults(0);
+        } else {
+          setCases(data);
+          setTotalResults(data.length);
+        }
+      } catch (err) {
+        setError('Failed to fetch legal cases. Please try again.');
+        setCases([]);
+        setTotalResults(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCases();
+  }, [params.query, params.court, params.year, params.topic, params.page]);
+
+  return { cases, loading, error, totalResults };
 };

@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { LegalCase } from '@/services/safliiService';
+import { CaseResult } from '@/services/safliiService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, Calendar, User, BookOpen, ExternalLink } from 'lucide-react';
 
 interface SearchResultsProps {
-  cases: LegalCase[];
+  cases: CaseResult[];
   loading: boolean;
   error: string | null;
   totalResults: number;
@@ -79,7 +79,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground">
                   <User className="h-4 w-4 mr-2 text-legal-gold" />
-                  {legalCase.judge}
+                  {legalCase.judge || 'Unknown'}
                 </div>
               </div>
 
@@ -90,7 +90,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                   variant="outline" 
                   size="sm" 
                   className="text-legal-navy border-legal-navy hover:bg-legal-navy hover:text-white"
-                  onClick={() => window.open(legalCase.url, '_blank')}
+                  onClick={() => window.open(legalCase.safliiLink || legalCase.url, '_blank')}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   View on SAFLII
