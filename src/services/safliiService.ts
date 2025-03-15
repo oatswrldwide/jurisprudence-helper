@@ -11,8 +11,8 @@ export interface CaseResult {
   summary: string;
   tags: string[];
   safliiLink: string;
-  judge?: string; // Optional prop used in SearchResults
-  url?: string; // Optional for backward compatibility
+  judge?: string;
+  url?: string;
 }
 
 export interface SearchParams {
