@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Database } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SearchResults } from '@/components/SearchResults';
-import { useLegalCaseSearch, SearchParams } from '@/services/safliiService';
+import { useLegalCaseSearch, SearchParams } from '@/services/legal';
 import { SearchInput } from '@/components/Search/SearchInput';
 import { SearchFilters } from '@/components/Search/SearchFilters';
 import { SearchTips } from '@/components/Search/SearchTips';

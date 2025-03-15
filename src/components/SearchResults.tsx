@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CaseResult } from '@/services/safliiService';
+import { CaseResult } from '@/services/legal/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { CaseResult, searchSafliiCases } from '@/services/safliiService';
+import { CaseResult, searchSafliiCases } from '@/services/legal';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { getRequestLimit, hasReachedLimit } from '@/services/requestLimitService';
 import { LegalSearchCard } from '@/components/Legal/LegalSearchCard';

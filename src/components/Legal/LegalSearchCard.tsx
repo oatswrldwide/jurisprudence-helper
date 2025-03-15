@@ -4,7 +4,7 @@ import { Database } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SearchInput } from '@/components/Search/SearchInput';
 import { LimitReachedAlert } from '@/components/LimitReachedAlert';
-import { CaseResult } from '@/services/safliiService';
+import { CaseResult } from '@/services/legal/types';
 import { hasReachedLimit } from '@/services/requestLimitService';
 import { SearchLoading } from './SearchLoading';
 import { NoResultsFound } from './NoResultsFound';
