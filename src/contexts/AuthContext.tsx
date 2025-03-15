@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase, signInWithGoogle } from '@/lib/supabase';
 import { toast } from '@/components/ui/use-toast';
 
 type AuthContextType = {
@@ -13,6 +13,7 @@ type AuthContextType = {
   signOut: () => Promise<void>;
   continueAsGuest: () => void;
   isGuest: boolean;
+  signInWithGoogle: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,6 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setIsGuest(false); // Reset guest mode on auth change
     });
 
     return () => subscription.unsubscribe();
@@ -74,6 +76,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         emailRedirectTo: window.location.origin
       }
     });
+    if (error) throw error;
+  };
+
+  const handleSignInWithGoogle = async () => {
+    setIsGuest(false);
+    localStorage.removeItem('guestMode');
+    
+    const { error } = await signInWithGoogle();
     if (error) throw error;
   };
 
@@ -110,7 +120,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signUp, 
       signOut, 
       continueAsGuest,
-      isGuest
+      isGuest,
+      signInWithGoogle: handleSignInWithGoogle
     }}>
       {children}
     </AuthContext.Provider>

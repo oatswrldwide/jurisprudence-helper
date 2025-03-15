@@ -7,7 +7,30 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIU
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Add this for development mode only
+// Function to sign in with Google
+export const signInWithGoogle = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin
+    }
+  });
+  
+  return { data, error };
+};
+
+// Enable test mode in development
 if (import.meta.env.DEV) {
   console.log("Using development Supabase client. Authentication will work with mock credentials.");
+  
+  // Add test mode for easier debugging - you can use any email/password in dev mode
+  (window as any).enableTestMode = () => {
+    console.log("TEST MODE ENABLED: All features unlocked for testing");
+    localStorage.setItem('safliiRequestLimit', JSON.stringify({ 
+      count: 0, 
+      date: new Date().toISOString(), 
+      isPremium: true 
+    }));
+    alert("Test mode enabled: Premium features unlocked");
+  };
 }

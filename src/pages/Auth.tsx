@@ -7,6 +7,7 @@ import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { UserIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TestModeButton } from '@/components/TestModeButton';
 
 const Auth = () => {
   const { user, continueAsGuest } = useAuth();
@@ -65,6 +66,8 @@ const Auth = () => {
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
+      
+      <TestModeButton />
     </div>
   );
 };

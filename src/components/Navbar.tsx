@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bell, Search, Menu, LogOut } from 'lucide-react';
+import { Bell, Search, Menu, LogOut, User, Settings, Coffee } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sidebar } from './Sidebar';
@@ -19,7 +19,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 export const Navbar = () => {
   const isMobile = useIsMobile();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isGuest } = useAuth();
   const { toast } = useToast();
 
   const handleSignOut = async () => {
@@ -35,6 +35,13 @@ export const Navbar = () => {
         description: 'Failed to sign out. Please try again.',
         variant: 'destructive',
       });
+    }
+  };
+
+  // Function to enable test mode in development
+  const enableTestMode = () => {
+    if (import.meta.env.DEV && typeof window !== 'undefined' && (window as any).enableTestMode) {
+      (window as any).enableTestMode();
     }
   };
 
@@ -81,17 +88,34 @@ export const Navbar = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="h-8 w-8 cursor-pointer">
-                  <AvatarImage src="" />
+                  {user.user_metadata?.avatar_url ? (
+                    <AvatarImage src={user.user_metadata.avatar_url} />
+                  ) : null}
                   <AvatarFallback className="bg-legal-navy text-white text-sm">
-                    {user.email?.substring(0, 2).toUpperCase() || 'U'}
+                    {isGuest ? 'G' : (user.email?.substring(0, 2).toUpperCase() || 'U')}
                   </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  {isGuest ? 'Guest User' : (user.user_metadata?.name || user.email)}
+                  {isGuest && <span className="block text-xs text-muted-foreground">Limited access</span>}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuItem>
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+                {import.meta.env.DEV && (
+                  <DropdownMenuItem onClick={enableTestMode}>
+                    <Coffee className="h-4 w-4 mr-2" />
+                    Enable Test Mode
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-red-500">
                   <LogOut className="h-4 w-4 mr-2" />
