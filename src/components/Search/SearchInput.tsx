@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search, Brain } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -23,7 +23,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            placeholder="Search legal databases..." 
+            placeholder="Ask Precedence AI about legal cases, principles, or questions..." 
             className="pl-10"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -37,10 +37,13 @@ export const SearchInput: React.FC<SearchInputProps> = ({
           {loading ? (
             <div className="flex items-center gap-2">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              <span>Searching...</span>
+              <span>Analyzing...</span>
             </div>
           ) : (
-            <span>Search</span>
+            <span className="flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              Search
+            </span>
           )}
         </Button>
       </div>

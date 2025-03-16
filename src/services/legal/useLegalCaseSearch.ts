@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { CaseResult, SearchParams } from './types';
-import { searchSafliiCases } from './safliiClient';
+import { searchWithCustomGpt } from './customGptService';
 
-// Custom hook for searching SAFLII cases
+// Custom hook for searching with Precedence AI
 export const useLegalCaseSearch = (params: SearchParams) => {
   const [cases, setCases] = useState<CaseResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,8 @@ export const useLegalCaseSearch = (params: SearchParams) => {
       setError(null);
 
       try {
-        const { data, limitReached } = await searchSafliiCases(params.query);
+        // Use the custom GPT search instead of SAFLII
+        const { data, limitReached } = await searchWithCustomGpt(params.query);
         
         if (limitReached) {
           setError('Daily request limit reached. Please upgrade to premium.');

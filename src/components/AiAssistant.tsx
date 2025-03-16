@@ -69,14 +69,14 @@ export const AiAssistant = () => {
                   <Brain className="h-8 w-8 text-legal-gold" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">LexAI Assistant</h2>
-                  <p className="text-sm text-white/70">Powered by South African legal data</p>
+                  <h2 className="text-xl font-bold">Precedence AI</h2>
+                  <p className="text-sm text-white/70">Powered by GPT & South African legal data</p>
                 </div>
               </div>
               
               <div className="hidden md:flex items-center gap-2 text-xs text-white/60">
                 <Database className="h-3 w-3" />
-                <span>Connected to SAFLII</span>
+                <span>Custom GPT: g-hcx6E7jBe</span>
               </div>
             </div>
             
@@ -127,11 +127,11 @@ export const AiAssistant = () => {
                     <div className="flex items-center gap-2 mt-3">
                       <div className="text-xs flex items-center gap-1 bg-white/10 px-2 py-1 rounded">
                         <Database className="h-3 w-3 text-legal-gold" />
-                        <span>Source: SAFLII</span>
+                        <span>Source: Precedence AI</span>
                       </div>
                       <div className="text-xs flex items-center gap-1 bg-white/10 px-2 py-1 rounded">
                         <AlertCircle className="h-3 w-3 text-legal-gold" />
-                        <span>92% confidence</span>
+                        <span>98% confidence</span>
                       </div>
                     </div>
                   </div>

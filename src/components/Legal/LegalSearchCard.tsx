@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Database } from 'lucide-react';
+import { Database, Brain } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SearchInput } from '@/components/Search/SearchInput';
 import { LimitReachedAlert } from '@/components/LimitReachedAlert';
@@ -32,8 +32,8 @@ export const LegalSearchCard: React.FC<LegalSearchCardProps> = ({
     <Card className="border shadow-sm">
       <CardHeader className="pb-3 bg-gradient-to-r from-legal-grey to-white">
         <CardTitle className="text-lg font-semibold text-legal-navy flex items-center gap-2">
-          <Database className="h-4 w-4 text-legal-gold" />
-          SAFLII Case Law Search
+          <Brain className="h-4 w-4 text-legal-gold" />
+          Precedence AI Search
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4">
