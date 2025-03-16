@@ -1,27 +1,17 @@
 
 import React, { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { CaseResult } from '@/services/legal';
-import { searchWithCustomGpt, getSavedApiKey, saveApiKey } from '@/services/legal/customGptService';
+import { CaseResult, searchSafliiCases } from '@/services/legal';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { getRequestLimit, hasReachedLimit } from '@/services/requestLimitService';
 import { LegalSearchCard } from '@/components/Legal/LegalSearchCard';
-import { Brain } from 'lucide-react';
-import { OpenAiKeyInput } from '@/components/OpenAiKeyInput';
-import { Card, CardContent } from '@/components/ui/card';
 
 const LegalResearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<CaseResult[]>([]);
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
-  const [apiKey, setApiKey] = useState(getSavedApiKey());
   const { toast } = useToast();
-
-  const handleSaveKey = (key: string) => {
-    setApiKey(key);
-    saveApiKey(key);
-  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,29 +31,12 @@ const LegalResearch = () => {
     }
     
     setLoading(true);
-    
-    // Show searching toast
-    toast({
-      title: 'Searching with Precedence AI',
-      description: 'Analyzing legal databases and case law...',
-      duration: 3000,
-    });
-    
     try {
-      // Use the custom GPT service
-      const { data, limitReached, error } = await searchWithCustomGpt(searchQuery);
+      const { data, limitReached } = await searchSafliiCases(searchQuery);
       
       if (limitReached) {
         setIsSubscriptionModalOpen(true);
         return;
-      }
-      
-      if (error) {
-        toast({
-          title: 'Search Error',
-          description: error,
-          variant: 'destructive',
-        });
       }
       
       setResults(data);
@@ -72,19 +45,14 @@ const LegalResearch = () => {
       const { count, isPremium } = getRequestLimit();
       if (!isPremium) {
         toast({
-          title: 'Search Complete',
+          title: 'SAFLII Search',
           description: `You have used ${count}/3 free daily requests`,
-        });
-      } else {
-        toast({
-          title: 'Search Complete',
-          description: 'Results analyzed by Precedence AI',
         });
       }
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to search with Precedence AI',
+        description: 'Failed to search SAFLII database',
         variant: 'destructive',
       });
     } finally {
@@ -94,25 +62,10 @@ const LegalResearch = () => {
 
   return (
     <div className="container max-w-6xl py-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold text-legal-navy">Legal Research</h1>
-        <div className="bg-legal-gold/10 p-1 rounded">
-          <Brain className="h-5 w-5 text-legal-gold" />
-        </div>
-        <span className="text-sm font-medium bg-legal-lightBlue px-2 py-1 rounded text-legal-navy">
-          Powered by Precedence AI
-        </span>
-      </div>
-      
+      <h1 className="text-2xl font-bold text-legal-navy mb-2">Legal Research</h1>
       <p className="text-muted-foreground mb-4">
-        Search South Africa's comprehensive legal database using advanced AI technology
+        Search South Africa's comprehensive legal database for cases, statutes, and legal resources
       </p>
-      
-      <Card className="border shadow-sm mb-4">
-        <CardContent className="pt-6">
-          <OpenAiKeyInput onSaveKey={handleSaveKey} apiKey={apiKey} />
-        </CardContent>
-      </Card>
       
       <LegalSearchCard
         searchQuery={searchQuery}
