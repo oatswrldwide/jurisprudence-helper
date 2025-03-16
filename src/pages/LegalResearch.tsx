@@ -2,18 +2,26 @@
 import React, { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { CaseResult } from '@/services/legal';
-import { searchWithCustomGpt } from '@/services/legal/customGptService';
+import { searchWithCustomGpt, getSavedApiKey, saveApiKey } from '@/services/legal/customGptService';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { getRequestLimit, hasReachedLimit } from '@/services/requestLimitService';
 import { LegalSearchCard } from '@/components/Legal/LegalSearchCard';
 import { Brain } from 'lucide-react';
+import { OpenAiKeyInput } from '@/components/OpenAiKeyInput';
+import { Card, CardContent } from '@/components/ui/card';
 
 const LegalResearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<CaseResult[]>([]);
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
+  const [apiKey, setApiKey] = useState(getSavedApiKey());
   const { toast } = useToast();
+
+  const handleSaveKey = (key: string) => {
+    setApiKey(key);
+    saveApiKey(key);
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,12 +50,20 @@ const LegalResearch = () => {
     });
     
     try {
-      // Use the custom GPT service instead of SAFLII
-      const { data, limitReached } = await searchWithCustomGpt(searchQuery);
+      // Use the custom GPT service
+      const { data, limitReached, error } = await searchWithCustomGpt(searchQuery);
       
       if (limitReached) {
         setIsSubscriptionModalOpen(true);
         return;
+      }
+      
+      if (error) {
+        toast({
+          title: 'Search Error',
+          description: error,
+          variant: 'destructive',
+        });
       }
       
       setResults(data);
@@ -91,6 +107,12 @@ const LegalResearch = () => {
       <p className="text-muted-foreground mb-4">
         Search South Africa's comprehensive legal database using advanced AI technology
       </p>
+      
+      <Card className="border shadow-sm mb-4">
+        <CardContent className="pt-6">
+          <OpenAiKeyInput onSaveKey={handleSaveKey} apiKey={apiKey} />
+        </CardContent>
+      </Card>
       
       <LegalSearchCard
         searchQuery={searchQuery}

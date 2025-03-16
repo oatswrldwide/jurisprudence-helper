@@ -11,5 +11,8 @@ export * from './safliiClient';
 // Export Custom GPT service
 export * from './customGptService';
 
+// Export OpenAI service
+export * from './openAiService';
+
 // Export hooks
 export * from './useLegalCaseSearch';

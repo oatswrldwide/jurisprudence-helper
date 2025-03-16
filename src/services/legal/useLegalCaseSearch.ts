@@ -24,10 +24,14 @@ export const useLegalCaseSearch = (params: SearchParams) => {
 
       try {
         // Use the custom GPT search instead of SAFLII
-        const { data, limitReached } = await searchWithCustomGpt(params.query);
+        const { data, limitReached, error } = await searchWithCustomGpt(params.query);
         
         if (limitReached) {
           setError('Daily request limit reached. Please upgrade to premium.');
+          setCases([]);
+          setTotalResults(0);
+        } else if (error) {
+          setError(error);
           setCases([]);
           setTotalResults(0);
         } else {

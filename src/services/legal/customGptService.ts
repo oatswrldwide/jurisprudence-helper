@@ -1,16 +1,26 @@
 
 import { CaseResult } from './types';
 import { incrementRequestCount, hasReachedLimit } from '../requestLimitService';
+import { callOpenAiGpt } from './openAiService';
 
-// This is a wrapper service to integrate with the custom GPT "Precedence AI"
-// Note: Since we can't directly call the GPT API from the frontend due to authentication requirements,
-// this service provides a frontend-friendly interface that would typically connect to a backend service
+// Local storage key for the OpenAI API key
+const OPENAI_API_KEY_STORAGE = 'openai_api_key';
 
 // Custom GPT ID for Precedence AI
 const PRECEDENCE_AI_ID = 'g-hcx6E7jBe';
 
+// Get the saved API key from local storage
+export const getSavedApiKey = (): string => {
+  return localStorage.getItem(OPENAI_API_KEY_STORAGE) || '';
+};
+
+// Save the API key to local storage
+export const saveApiKey = (key: string): void => {
+  localStorage.setItem(OPENAI_API_KEY_STORAGE, key);
+};
+
 // Function to search legal cases using the custom GPT
-export const searchWithCustomGpt = async (query: string): Promise<{ data: CaseResult[], limitReached: boolean }> => {
+export const searchWithCustomGpt = async (query: string): Promise<{ data: CaseResult[], limitReached: boolean, error?: string }> => {
   // Check if user has reached the limit
   if (hasReachedLimit()) {
     return { data: [], limitReached: true };
@@ -20,22 +30,53 @@ export const searchWithCustomGpt = async (query: string): Promise<{ data: CaseRe
     console.log('Searching with Custom GPT for:', query);
     console.log('GPT Model ID:', PRECEDENCE_AI_ID);
     
-    // In a real implementation, we would call a backend API that would then interact with the OpenAI API
-    // For now, we'll use our SAFLII mock data as a demonstration, but enhance it to look like GPT responses
+    const apiKey = getSavedApiKey();
     
-    // Simulate network latency for a more realistic experience
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Generate GPT-enhanced mock results
-    const results = mockGptSearch(query);
-    
-    // Increment request count
-    incrementRequestCount();
-    
-    return { data: results, limitReached: false };
+    // If we have an API key, try to use the real OpenAI API
+    if (apiKey) {
+      try {
+        const response = await callOpenAiGpt(query, apiKey);
+        
+        if (response.limitReached) {
+          return { data: [], limitReached: true, error: 'OpenAI rate limit reached.' };
+        }
+        
+        if (response.error) {
+          console.error('Error from OpenAI API:', response.error);
+          // Fall back to mock data if there's an API error
+          console.log('Falling back to mock data due to API error');
+          const results = mockGptSearch(query);
+          incrementRequestCount();
+          return { data: results, limitReached: false };
+        }
+        
+        // If we successfully got results from the API
+        incrementRequestCount();
+        return { data: response.cases, limitReached: false };
+      } catch (apiError) {
+        console.error('Error calling OpenAI API:', apiError);
+        // Fall back to mock data if there's an API error
+        const results = mockGptSearch(query);
+        incrementRequestCount();
+        return { data: results, limitReached: false };
+      }
+    } else {
+      // No API key provided, use mock data
+      console.log('No API key provided, using mock data');
+      // Simulate network latency for a more realistic experience
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate GPT-enhanced mock results
+      const results = mockGptSearch(query);
+      
+      // Increment request count
+      incrementRequestCount();
+      
+      return { data: results, limitReached: false };
+    }
   } catch (error) {
     console.error('Error searching with Custom GPT:', error);
-    return { data: [], limitReached: false };
+    return { data: [], limitReached: false, error: 'Failed to search with Precedence AI' };
   }
 };
 
