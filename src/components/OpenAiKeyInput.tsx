@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Key, Eye, EyeOff, Save, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { hasApiKey } from '@/services/legal';
 
 export const OpenAiKeyInput: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
@@ -14,11 +15,12 @@ export const OpenAiKeyInput: React.FC = () => {
 
   useEffect(() => {
     // Check if API key is stored
-    const storedKey = localStorage.getItem('openai_api_key');
-    setIsKeyStored(!!storedKey);
+    const keyExists = hasApiKey();
+    setIsKeyStored(keyExists);
     
     // If key is stored, show first 4 and last 4 chars only
-    if (storedKey) {
+    if (keyExists) {
+      const storedKey = localStorage.getItem('openai_api_key') || '';
       const maskedKey = `${storedKey.substring(0, 4)}...${storedKey.substring(storedKey.length - 4)}`;
       setApiKey(maskedKey);
     }
@@ -42,6 +44,9 @@ export const OpenAiKeyInput: React.FC = () => {
       title: "API Key Saved",
       description: "Your OpenAI API key has been saved securely in your browser.",
     });
+    
+    // Force a refresh to update components that depend on the API key
+    window.dispatchEvent(new Event('storage'));
   };
 
   const handleRemoveKey = () => {
@@ -53,6 +58,9 @@ export const OpenAiKeyInput: React.FC = () => {
       title: "API Key Removed",
       description: "Your OpenAI API key has been removed.",
     });
+    
+    // Force a refresh to update components that depend on the API key
+    window.dispatchEvent(new Event('storage'));
   };
 
   const handleKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {

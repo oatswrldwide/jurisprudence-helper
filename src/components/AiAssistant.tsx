@@ -3,36 +3,66 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { Brain, Send, CornerDownLeft, Sparkles, Database, AlertCircle } from 'lucide-react';
+import { callCustomGpt, hasApiKey } from '@/services/legal';
+import { useToast } from '@/components/ui/use-toast';
 
 export const AiAssistant = () => {
   const [query, setQuery] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
   const [pulseEffect, setPulseEffect] = useState(false);
+  const { toast } = useToast();
 
-  // Simulated response messages for the demo
-  const demoResponses = [
-    "Based on the recent Constitutional Court case S v Ndlovu (2023), the admissibility of evidence obtained through electronic surveillance requires a warrant under section 24 of the RICA Act.",
-    "The precedent in Minister of Home Affairs v CSARS (2022) suggests that your tax dispute may qualify for the alternative dispute resolution process before proceeding to litigation.",
-    "According to the Consumer Protection Act, section 54, your client is entitled to a cooling-off period of 5 business days for this type of agreement.",
-    "In analyzing similar cases from the Supreme Court of Appeal, the claim for non-patrimonial damages in this medical negligence case would likely be quantified using the guidelines from MEC for Health v Johnson (2023)."
-  ];
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim() || isProcessing) return;
+    
+    // Check if API key exists
+    if (!hasApiKey()) {
+      toast({
+        title: "API Key Required",
+        description: "Please enter your OpenAI API key in the section below.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsProcessing(true);
     setPulseEffect(true);
     
-    // Simulate AI processing
-    setTimeout(() => {
-      const randomResponse = demoResponses[Math.floor(Math.random() * demoResponses.length)];
-      setResponse(randomResponse);
+    try {
+      const result = await callCustomGpt(query);
+      
+      if (result.error) {
+        toast({
+          title: "Error",
+          description: result.error.message,
+          variant: "destructive",
+        });
+        setResponse(null);
+      } else if (result.data && result.data.length > 0) {
+        // Format the response data into a readable string
+        const formattedResponse = result.data.map(caseResult => {
+          return `${caseResult.title || 'Untitled Case'}\n${caseResult.citation || ''}\n${caseResult.summary || 'No summary available.'}`;
+        }).join('\n\n');
+        
+        setResponse(formattedResponse);
+      } else {
+        setResponse("No relevant cases found for your query. Please try a different search term.");
+      }
+    } catch (err) {
+      console.error('Error processing AI request:', err);
+      toast({
+        title: "Error",
+        description: "An error occurred while processing your request.",
+        variant: "destructive",
+      });
+    } finally {
       setIsProcessing(false);
       setPulseEffect(false);
-    }, 2000);
+    }
   };
 
   // Brain animation effect
@@ -76,7 +106,7 @@ export const AiAssistant = () => {
               
               <div className="hidden md:flex items-center gap-2 text-xs text-white/60">
                 <Database className="h-3 w-3" />
-                <span>Connected to SAFLII</span>
+                <span>Connected to OpenAI</span>
               </div>
             </div>
             
@@ -123,17 +153,32 @@ export const AiAssistant = () => {
                 <div className="flex items-start gap-3">
                   <Sparkles className="h-5 w-5 text-legal-gold flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm leading-relaxed">{response}</p>
+                    <Textarea 
+                      value={response} 
+                      readOnly 
+                      className="bg-transparent border-none text-white text-sm leading-relaxed min-h-[150px] resize-none focus-visible:ring-0"
+                    />
                     <div className="flex items-center gap-2 mt-3">
                       <div className="text-xs flex items-center gap-1 bg-white/10 px-2 py-1 rounded">
                         <Database className="h-3 w-3 text-legal-gold" />
-                        <span>Source: SAFLII</span>
+                        <span>Source: OpenAI</span>
                       </div>
                       <div className="text-xs flex items-center gap-1 bg-white/10 px-2 py-1 rounded">
                         <AlertCircle className="h-3 w-3 text-legal-gold" />
-                        <span>92% confidence</span>
+                        <span>AI-generated response</span>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {!hasApiKey() && !response && (
+              <div className="rounded-lg bg-white/10 p-4 mt-4 border border-white/20">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-legal-gold flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm leading-relaxed">Please add your OpenAI API key in the section below to use LexAI Assistant.</p>
                   </div>
                 </div>
               </div>
