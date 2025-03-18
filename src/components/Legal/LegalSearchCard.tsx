@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Database } from 'lucide-react';
+import { Database, Brain } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SearchInput } from '@/components/Search/SearchInput';
 import { LimitReachedAlert } from '@/components/LimitReachedAlert';
@@ -18,6 +18,7 @@ interface LegalSearchCardProps {
   loading: boolean;
   results: CaseResult[];
   onSubscribe: () => void;
+  searchSource?: 'saflii' | 'precedenceAi';
 }
 
 export const LegalSearchCard: React.FC<LegalSearchCardProps> = ({
@@ -26,14 +27,24 @@ export const LegalSearchCard: React.FC<LegalSearchCardProps> = ({
   handleSearch,
   loading,
   results,
-  onSubscribe
+  onSubscribe,
+  searchSource = 'saflii'
 }) => {
   return (
     <Card className="border shadow-sm">
       <CardHeader className="pb-3 bg-gradient-to-r from-legal-grey to-white">
         <CardTitle className="text-lg font-semibold text-legal-navy flex items-center gap-2">
-          <Database className="h-4 w-4 text-legal-gold" />
-          SAFLII Case Law Search
+          {searchSource === 'saflii' ? (
+            <>
+              <Database className="h-4 w-4 text-legal-gold" />
+              SAFLII Case Law Search
+            </>
+          ) : (
+            <>
+              <Brain className="h-4 w-4 text-legal-gold" />
+              Precedence AI Search
+            </>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4">
@@ -42,15 +53,16 @@ export const LegalSearchCard: React.FC<LegalSearchCardProps> = ({
           setSearchQuery={setSearchQuery}
           handleSearch={handleSearch}
           loading={loading}
+          searchSource={searchSource}
         />
 
-        {hasReachedLimit() && (
+        {searchSource === 'saflii' && hasReachedLimit() && (
           <div className="mt-4">
             <LimitReachedAlert onSubscribe={onSubscribe} />
           </div>
         )}
         
-        {!hasReachedLimit() && results.length === 0 && !loading && searchQuery && (
+        {results.length === 0 && !loading && searchQuery && (
           <NoResultsFound searchQuery={searchQuery} loading={loading} />
         )}
         
@@ -58,8 +70,11 @@ export const LegalSearchCard: React.FC<LegalSearchCardProps> = ({
         
         {results.length > 0 && !loading && (
           <div className="mt-6 space-y-4">
-            <SearchResultsHeader resultsCount={results.length} />
-            <CaseResultsList results={results} loading={loading} />
+            <SearchResultsHeader 
+              resultsCount={results.length} 
+              searchSource={searchSource}
+            />
+            <CaseResultsList results={results} loading={loading} searchSource={searchSource} />
           </div>
         )}
       </CardContent>

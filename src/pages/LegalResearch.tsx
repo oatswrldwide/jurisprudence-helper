@@ -5,12 +5,17 @@ import { CaseResult, searchSafliiCases } from '@/services/legal';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { getRequestLimit, hasReachedLimit } from '@/services/requestLimitService';
 import { LegalSearchCard } from '@/components/Legal/LegalSearchCard';
+import { OpenAiKeyInput } from '@/components/OpenAiKeyInput';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { callCustomGpt } from '@/services/legal/openAiService';
 
 const LegalResearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<CaseResult[]>([]);
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
+  const [searchSource, setSearchSource] = useState<'saflii' | 'precedenceAi'>('saflii');
   const { toast } = useToast();
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -24,35 +29,63 @@ const LegalResearch = () => {
       return;
     }
     
-    // If user has reached limit, show subscription modal
-    if (hasReachedLimit()) {
+    // If user has reached limit and using SAFLII, show subscription modal
+    if (searchSource === 'saflii' && hasReachedLimit()) {
       setIsSubscriptionModalOpen(true);
       return;
     }
     
     setLoading(true);
     try {
-      const { data, limitReached } = await searchSafliiCases(searchQuery);
-      
-      if (limitReached) {
-        setIsSubscriptionModalOpen(true);
-        return;
-      }
-      
-      setResults(data);
-      
-      // Show request count in toast
-      const { count, isPremium } = getRequestLimit();
-      if (!isPremium) {
+      if (searchSource === 'saflii') {
+        const { data, limitReached } = await searchSafliiCases(searchQuery);
+        
+        if (limitReached) {
+          setIsSubscriptionModalOpen(true);
+          return;
+        }
+        
+        setResults(data);
+        
+        // Show request count in toast
+        const { count, isPremium } = getRequestLimit();
+        if (!isPremium) {
+          toast({
+            title: 'SAFLII Search',
+            description: `You have used ${count}/3 free daily requests`,
+          });
+        }
+      } else {
+        // Use the custom GPT (Precedence AI)
+        const { data, error } = await callCustomGpt(searchQuery);
+        
+        if (error) {
+          toast({
+            title: 'Error',
+            description: error.message,
+            variant: 'destructive',
+          });
+          if (error.code === 'no_api_key') {
+            // Focus on the API key input
+            const apiKeyInput = document.querySelector('input[type="password"]');
+            if (apiKeyInput) {
+              (apiKeyInput as HTMLInputElement).focus();
+            }
+          }
+          return;
+        }
+        
+        setResults(data);
+        
         toast({
-          title: 'SAFLII Search',
-          description: `You have used ${count}/3 free daily requests`,
+          title: 'Precedence AI Search',
+          description: `Found ${data.length} results using AI-powered search`,
         });
       }
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to search SAFLII database',
+        description: 'Failed to search legal database',
         variant: 'destructive',
       });
     } finally {
@@ -67,14 +100,47 @@ const LegalResearch = () => {
         Search South Africa's comprehensive legal database for cases, statutes, and legal resources
       </p>
       
-      <LegalSearchCard
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        handleSearch={handleSearch}
-        loading={loading}
-        results={results}
-        onSubscribe={() => setIsSubscriptionModalOpen(true)}
-      />
+      <Tabs 
+        defaultValue="saflii" 
+        value={searchSource}
+        onValueChange={(value) => setSearchSource(value as 'saflii' | 'precedenceAi')}
+        className="mb-4"
+      >
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="saflii" className="data-[state=active]:bg-legal-navy data-[state=active]:text-white">
+            SAFLII Database
+          </TabsTrigger>
+          <TabsTrigger value="precedenceAi" className="data-[state=active]:bg-legal-gold data-[state=active]:text-white">
+            Precedence AI <Badge variant="outline" className="ml-2 bg-amber-100 text-amber-800 border-0">GPT</Badge>
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="saflii" className="mt-0">
+          <LegalSearchCard
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            handleSearch={handleSearch}
+            loading={loading}
+            results={results}
+            onSubscribe={() => setIsSubscriptionModalOpen(true)}
+            searchSource={searchSource}
+          />
+        </TabsContent>
+        
+        <TabsContent value="precedenceAi" className="mt-0 space-y-4">
+          <OpenAiKeyInput />
+          
+          <LegalSearchCard
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            handleSearch={handleSearch}
+            loading={loading}
+            results={results}
+            onSubscribe={() => setIsSubscriptionModalOpen(true)}
+            searchSource={searchSource}
+          />
+        </TabsContent>
+      </Tabs>
       
       <SubscriptionModal 
         open={isSubscriptionModalOpen} 

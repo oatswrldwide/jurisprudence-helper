@@ -1,17 +1,22 @@
 
 import React from 'react';
-import { CaseResult } from '@/services/safliiService';
+import { CaseResult } from '@/services/legal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ArrowUpRight } from 'lucide-react';
+import { ChevronDown, ArrowUpRight, Brain } from 'lucide-react';
 
 interface CaseResultsListProps {
   results: CaseResult[];
   loading: boolean;
+  searchSource?: 'saflii' | 'precedenceAi';
 }
 
-export const CaseResultsList: React.FC<CaseResultsListProps> = ({ results, loading }) => {
+export const CaseResultsList: React.FC<CaseResultsListProps> = ({ 
+  results, 
+  loading, 
+  searchSource = 'saflii' 
+}) => {
   if (loading || results.length === 0) {
     return null;
   }
@@ -24,6 +29,11 @@ export const CaseResultsList: React.FC<CaseResultsListProps> = ({ results, loadi
             <div className="flex justify-between items-start mb-1">
               <h3 className="font-medium text-legal-navy">
                 {caseItem.title}
+                {searchSource === 'precedenceAi' && (
+                  <span className="inline-flex items-center ml-2">
+                    <Brain className="h-3 w-3 text-legal-gold" />
+                  </span>
+                )}
               </h3>
               <div className="flex items-center text-xs text-muted-foreground">
                 {caseItem.date}
@@ -31,7 +41,7 @@ export const CaseResultsList: React.FC<CaseResultsListProps> = ({ results, loadi
             </div>
             
             <div className="flex items-center text-sm text-muted-foreground gap-2 mb-2">
-              <span className="font-medium bg-legal-lightBlue px-2 py-0.5 rounded-sm">
+              <span className={`font-medium ${searchSource === 'precedenceAi' ? 'bg-legal-gold/20' : 'bg-legal-lightBlue'} px-2 py-0.5 rounded-sm`}>
                 {caseItem.citation}
               </span>
               <span>•</span>
@@ -42,8 +52,8 @@ export const CaseResultsList: React.FC<CaseResultsListProps> = ({ results, loadi
             
             <div className="flex justify-between items-center">
               <div className="flex gap-2 flex-wrap">
-                {caseItem.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="bg-legal-grey hover:bg-legal-grey/80">
+                {caseItem.tags && caseItem.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary" className={`${searchSource === 'precedenceAi' ? 'bg-legal-gold/10 text-legal-gold' : 'bg-legal-grey hover:bg-legal-grey/80'}`}>
                     {tag}
                   </Badge>
                 ))}
@@ -57,7 +67,7 @@ export const CaseResultsList: React.FC<CaseResultsListProps> = ({ results, loadi
           </div>
           
           <CollapsibleContent>
-            <div className="p-4 bg-legal-grey/20 border-t">
+            <div className={`p-4 ${searchSource === 'precedenceAi' ? 'bg-legal-gold/5' : 'bg-legal-grey/20'} border-t`}>
               <h4 className="font-medium mb-2">Full Case Details</h4>
               <p className="text-sm mb-3">
                 This is where additional case details would appear, such as the full

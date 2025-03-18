@@ -10,3 +10,6 @@ export * from './safliiClient';
 
 // Export hooks
 export * from './useLegalCaseSearch';
+
+// Export OpenAI service
+export * from './openAiService';
