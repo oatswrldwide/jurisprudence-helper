@@ -5,6 +5,7 @@ import { DocumentAnalyzer } from './DocumentAnalyzer';
 import { RecentCases } from './RecentCases';
 import { LegalCalendar } from './LegalCalendar';
 import { AiAssistant } from './AiAssistant';
+import { OpenAiKeyInput } from './OpenAiKeyInput';
 
 export const Dashboard = () => {
   return (
@@ -13,6 +14,10 @@ export const Dashboard = () => {
       
       <div className="mb-8">
         <AiAssistant />
+      </div>
+      
+      <div className="mb-8">
+        <OpenAiKeyInput />
       </div>
       
       <div className="mb-8">

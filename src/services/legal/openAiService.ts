@@ -1,4 +1,3 @@
-
 import { CaseResult } from './types';
 
 // Define the type for our GPT API response
@@ -15,6 +14,13 @@ export interface OpenAIError {
   code?: string;
   type?: string;
 }
+
+/**
+ * Check if an OpenAI API key is stored
+ */
+export const hasApiKey = (): boolean => {
+  return !!localStorage.getItem('openai_api_key');
+};
 
 /**
  * Call the custom GPT (Precedence AI) with the given query
