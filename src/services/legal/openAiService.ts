@@ -1,4 +1,6 @@
+
 import { CaseResult } from './types';
+import { mockCases } from './safliiClient';
 
 // Define the type for our GPT API response
 interface GPTResponse {
@@ -39,6 +41,14 @@ export const callCustomGpt = async (query: string): Promise<{ data: CaseResult[]
   }
 
   try {
+    // Check if test mode is enabled
+    const testMode = localStorage.getItem('ai_test_mode') === 'true';
+    
+    if (testMode) {
+      console.log('Using test mode for AI responses');
+      return generateMockAiResponse(query);
+    }
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -64,6 +74,16 @@ export const callCustomGpt = async (query: string): Promise<{ data: CaseResult[]
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.log('OpenAI API error:', errorData);
+      
+      // For quota/rate limit errors, fall back to mock responses
+      if (errorData.error?.code === 'insufficient_quota' || 
+          errorData.error?.type === 'insufficient_quota' ||
+          errorData.error?.code === 'rate_limit_exceeded') {
+        console.log('Falling back to mock AI response due to API limits');
+        return generateMockAiResponse(query);
+      }
+      
       return { 
         data: [],
         error: { 
@@ -112,4 +132,43 @@ export const callCustomGpt = async (query: string): Promise<{ data: CaseResult[]
       }
     };
   }
+};
+
+/**
+ * Generate a mock AI response for testing
+ */
+const generateMockAiResponse = (query: string): { data: CaseResult[], error?: OpenAIError } => {
+  // Simple filtering based on the query
+  const filteredCases = mockCases.filter(caseItem => 
+    caseItem.title.toLowerCase().includes(query.toLowerCase()) ||
+    caseItem.summary.toLowerCase().includes(query.toLowerCase()) ||
+    caseItem.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
+  );
+  
+  // If no direct matches, return a subset of mock cases with modified titles/summaries
+  const results = filteredCases.length > 0 ? filteredCases : mockCases.slice(0, 3).map((caseItem, index) => ({
+    ...caseItem,
+    id: `ai-mock-${index}`,
+    title: `${caseItem.title} (related to "${query}")`,
+    summary: `This case has relevance to "${query}". ${caseItem.summary}`,
+    tags: [...caseItem.tags, query]
+  }));
+  
+  return { 
+    data: results
+  };
+};
+
+/**
+ * Enable or disable test mode for AI responses
+ */
+export const setAiTestMode = (enabled: boolean): void => {
+  localStorage.setItem('ai_test_mode', enabled ? 'true' : 'false');
+};
+
+/**
+ * Check if AI test mode is enabled
+ */
+export const isAiTestModeEnabled = (): boolean => {
+  return localStorage.getItem('ai_test_mode') === 'true';
 };

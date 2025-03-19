@@ -2,21 +2,26 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Key, Eye, EyeOff, Save, X } from 'lucide-react';
+import { Key, Eye, EyeOff, Save, X, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { hasApiKey } from '@/services/legal';
+import { hasApiKey, setAiTestMode, isAiTestModeEnabled } from '@/services/legal';
+import { Switch } from '@/components/ui/switch';
 
 export const OpenAiKeyInput: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
   const [showKey, setShowKey] = useState(false);
   const [isKeyStored, setIsKeyStored] = useState(false);
+  const [testMode, setTestMode] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     // Check if API key is stored
     const keyExists = hasApiKey();
     setIsKeyStored(keyExists);
+    
+    // Check if test mode is enabled
+    setTestMode(isAiTestModeEnabled());
     
     // If key is stored, show first 4 and last 4 chars only
     if (keyExists) {
@@ -68,12 +73,38 @@ export const OpenAiKeyInput: React.FC = () => {
     setIsKeyStored(false);
   };
 
+  const handleTestModeToggle = (enabled: boolean) => {
+    setTestMode(enabled);
+    setAiTestMode(enabled);
+    
+    toast({
+      title: enabled ? "Test Mode Enabled" : "Test Mode Disabled",
+      description: enabled 
+        ? "Using mock responses instead of the OpenAI API for testing." 
+        : "Using the actual OpenAI API for responses.",
+    });
+    
+    // Force a refresh to update components that depend on test mode
+    window.dispatchEvent(new Event('storage'));
+  };
+
   return (
     <Card className="mb-6 border-legal-navy/20">
       <CardHeader className="pb-3">
-        <CardTitle className="text-md font-medium flex items-center">
-          <Key className="h-4 w-4 mr-2 text-legal-gold" />
-          OpenAI API Key
+        <CardTitle className="text-md font-medium flex items-center justify-between">
+          <span className="flex items-center">
+            <Key className="h-4 w-4 mr-2 text-legal-gold" />
+            OpenAI API Key
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Test Mode</span>
+            <Switch 
+              checked={testMode} 
+              onCheckedChange={handleTestModeToggle}
+              className="data-[state=checked]:bg-legal-gold"
+            />
+            {testMode && <Sparkles className="h-4 w-4 text-legal-gold" />}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -99,7 +130,14 @@ export const OpenAiKeyInput: React.FC = () => {
           </button>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
-          Your API key is stored locally in your browser and never sent to our servers.
+          {testMode ? (
+            <span className="flex items-center gap-1">
+              <Sparkles className="h-3 w-3 text-legal-gold" />
+              Test mode is active. AI responses will use mock data instead of the OpenAI API.
+            </span>
+          ) : (
+            "Your API key is stored locally in your browser and never sent to our servers."
+          )}
         </p>
       </CardContent>
       <CardFooter className="flex justify-end gap-2 pt-0">

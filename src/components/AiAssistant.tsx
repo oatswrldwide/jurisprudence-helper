@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Brain, Send, CornerDownLeft, Sparkles, Database, AlertCircle } from 'lucide-react';
-import { callCustomGpt, hasApiKey } from '@/services/legal';
+import { callCustomGpt, hasApiKey, isAiTestModeEnabled } from '@/services/legal';
 import { useToast } from '@/components/ui/use-toast';
 
 export const AiAssistant = () => {
@@ -13,17 +13,31 @@ export const AiAssistant = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
   const [pulseEffect, setPulseEffect] = useState(false);
+  const [testMode, setTestMode] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if test mode is enabled
+    setTestMode(isAiTestModeEnabled());
+    
+    // Listen for storage events (when test mode or API key changes)
+    const handleStorageChange = () => {
+      setTestMode(isAiTestModeEnabled());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim() || isProcessing) return;
     
-    // Check if API key exists
-    if (!hasApiKey()) {
+    // In test mode, we don't require an API key
+    if (!testMode && !hasApiKey()) {
       toast({
         title: "API Key Required",
-        description: "Please enter your OpenAI API key in the section below.",
+        description: "Please enter your OpenAI API key in the section below or enable Test Mode.",
         variant: "destructive",
       });
       return;
@@ -100,13 +114,26 @@ export const AiAssistant = () => {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">LexAI Assistant</h2>
-                  <p className="text-sm text-white/70">Powered by South African legal data</p>
+                  <p className="text-sm text-white/70">
+                    {testMode ? 
+                      "Running in test mode (using mock data)" : 
+                      "Powered by South African legal data"}
+                  </p>
                 </div>
               </div>
               
               <div className="hidden md:flex items-center gap-2 text-xs text-white/60">
-                <Database className="h-3 w-3" />
-                <span>Connected to OpenAI</span>
+                {testMode ? (
+                  <>
+                    <Sparkles className="h-3 w-3 text-legal-gold" />
+                    <span>Test Mode Active</span>
+                  </>
+                ) : (
+                  <>
+                    <Database className="h-3 w-3" />
+                    <span>Connected to OpenAI</span>
+                  </>
+                )}
               </div>
             </div>
             
@@ -160,8 +187,17 @@ export const AiAssistant = () => {
                     />
                     <div className="flex items-center gap-2 mt-3">
                       <div className="text-xs flex items-center gap-1 bg-white/10 px-2 py-1 rounded">
-                        <Database className="h-3 w-3 text-legal-gold" />
-                        <span>Source: OpenAI</span>
+                        {testMode ? (
+                          <>
+                            <Sparkles className="h-3 w-3 text-legal-gold" />
+                            <span>Source: Test Mode</span>
+                          </>
+                        ) : (
+                          <>
+                            <Database className="h-3 w-3 text-legal-gold" />
+                            <span>Source: OpenAI</span>
+                          </>
+                        )}
                       </div>
                       <div className="text-xs flex items-center gap-1 bg-white/10 px-2 py-1 rounded">
                         <AlertCircle className="h-3 w-3 text-legal-gold" />
@@ -173,12 +209,12 @@ export const AiAssistant = () => {
               </div>
             )}
             
-            {!hasApiKey() && !response && (
+            {!testMode && !hasApiKey() && !response && (
               <div className="rounded-lg bg-white/10 p-4 mt-4 border border-white/20">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-legal-gold flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm leading-relaxed">Please add your OpenAI API key in the section below to use LexAI Assistant.</p>
+                    <p className="text-sm leading-relaxed">Please add your OpenAI API key in the section below to use LexAI Assistant, or enable Test Mode for demo purposes.</p>
                   </div>
                 </div>
               </div>
