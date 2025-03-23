@@ -164,6 +164,8 @@ const generateMockAiResponse = (query: string): { data: CaseResult[], error?: Op
  */
 export const setAiTestMode = (enabled: boolean): void => {
   localStorage.setItem('ai_test_mode', enabled ? 'true' : 'false');
+  // Trigger storage event manually for components to detect the change
+  window.dispatchEvent(new Event('storage'));
 };
 
 /**
